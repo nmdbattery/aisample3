@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGF (027410) 종합 분석 보고서</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --primary-light: #2c5282;
+            --accent: #e53e3e;
+            --accent-green: #38a169;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 48px 0 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            font-size: 1rem;
+            opacity: 0.85;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: -32px 0 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .summary-card .label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .summary-card .value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .summary-card .value.red { color: var(--accent); }
+        .summary-card .value.green { color: var(--accent-green); }
+
+        .summary-card .note {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .section h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2 .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .section h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            margin: 20px 0 12px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 20px;
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            background: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        thead th:first-child { border-radius: 8px 0 0 0; }
+        thead th:last-child { border-radius: 0 8px 0 0; }
+
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:hover { background: #f0f4ff; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .text-red { color: var(--accent); font-weight: 600; }
+        .text-green { color: var(--accent-green); font-weight: 600; }
+        .text-bold { font-weight: 700; }
+
+        /* Alert Box */
+        .alert {
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        .alert-highlight {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
+            border-left: 4px solid var(--accent);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+            border-left: 4px solid #3182ce;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .alert strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* Factor Grid */
+        .factor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .factor-grid { grid-template-columns: 1fr; }
+        }
+
+        .factor-col h3 {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .factor-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+        }
+
+        .factor-item.positive {
+            background: #f0fff4;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .factor-item.negative {
+            background: #fff5f5;
+            border-left: 3px solid var(--accent);
+        }
+
+        .factor-item .factor-title {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .factor-item .factor-desc {
+            color: var(--text-light);
+            font-size: 0.82rem;
+        }
+
+        /* Scenario */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid { grid-template-columns: 1fr; }
+        }
+
+        .scenario-card {
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .scenario-card.bull {
+            background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+            border: 2px solid #9ae6b4;
+        }
+
+        .scenario-card.base {
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+            border: 2px solid #90cdf4;
+        }
+
+        .scenario-card.bear {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
+            border: 2px solid #feb2b2;
+        }
+
+        .scenario-card .scenario-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .scenario-card.bull .scenario-label { color: #276749; }
+        .scenario-card.base .scenario-label { color: #2b6cb0; }
+        .scenario-card.bear .scenario-label { color: #c53030; }
+
+        .scenario-card .scenario-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .scenario-card .scenario-condition {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* Chart placeholder */
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 0.85rem;
+        }
+
+        .chart-bar .bar-label {
+            width: 80px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .chart-bar .bar-track {
+            flex: 1;
+            background: #edf2f7;
+            border-radius: 6px;
+            height: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: width 1s ease;
+        }
+
+        .bar-fill.blue { background: linear-gradient(90deg, #3182ce, #2b6cb0); }
+        .bar-fill.red { background: linear-gradient(90deg, #e53e3e, #c53030); }
+        .bar-fill.green { background: linear-gradient(90deg, #38a169, #276749); }
+
+        /* Price range */
+        .price-range {
+            position: relative;
+            height: 40px;
+            background: linear-gradient(90deg, #fed7d7, #fefcbf, #c6f6d5);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .price-range .marker {
+            position: absolute;
+            top: -8px;
+            width: 3px;
+            height: 56px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .price-range .marker-label {
+            position: absolute;
+            top: -28px;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .price-range .range-labels {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 48px;
+            font-size: 0.78rem;
+            color: var(--text-light);
+        }
+
+        /* Subsidiary structure */
+        .subsidiary-header {
+            background: linear-gradient(135deg, #44337a, #6b46c1);
+            color: white;
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .subsidiary-header h2 {
+            color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
+
+        .subsidiary-header .sub-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .subsidiary-header .sub-box {
+            text-align: center;
+        }
+
+        .subsidiary-header .sub-box .sub-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .subsidiary-header .sub-box .sub-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .subsidiary-header .sub-arrow {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+
+        /* Condition checklist */
+        .condition-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .condition-card.critical {
+            border-color: #e53e3e;
+            background: linear-gradient(135deg, #fff5f5, #ffffff);
+        }
+
+        .condition-card.important {
+            border-color: #dd6b20;
+            background: linear-gradient(135deg, #fffaf0, #ffffff);
+        }
+
+        .condition-card.bonus {
+            border-color: #3182ce;
+            background: linear-gradient(135deg, #ebf8ff, #ffffff);
+        }
+
+        .condition-card .condition-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .condition-card .condition-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .condition-card.critical .condition-number { background: #e53e3e; }
+        .condition-card.important .condition-number { background: #dd6b20; }
+        .condition-card.bonus .condition-number { background: #3182ce; }
+
+        .condition-card .condition-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .condition-card .condition-body {
+            font-size: 0.88rem;
+            color: var(--text-light);
+            padding-left: 38px;
+        }
+
+        .condition-card .condition-metrics {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-left: 38px;
+        }
+
+        .condition-card .metric {
+            background: #f7fafc;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.82rem;
+        }
+
+        .condition-card .metric .metric-label {
+            color: var(--text-light);
+            font-size: 0.75rem;
+        }
+
+        .condition-card .metric .metric-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Feasibility gauge */
+        .feasibility-gauge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .gauge-track {
+            flex: 1;
+            height: 24px;
+            background: linear-gradient(90deg, #c53030, #dd6b20, #d69e2e, #38a169);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .gauge-marker {
+            position: absolute;
+            top: -4px;
+            width: 6px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 3px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Verdict box */
+        .verdict-box {
+            background: linear-gradient(135deg, #44337a, #553c9a);
+            color: white;
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin: 20px 0;
+        }
+
+        .verdict-box .verdict-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .verdict-box .verdict-score {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .verdict-box .score-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 3px solid rgba(255,255,255,0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .verdict-box .score-circle .score-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .verdict-box .score-circle .score-label {
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
+
+        .verdict-box .verdict-text {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            opacity: 0.9;
+        }
+
+        /* History grid */
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .history-item {
+            text-align: center;
+            padding: 14px;
+            border-radius: 8px;
+            background: #f7fafc;
+            border: 1px solid var(--border);
+        }
+
+        .history-item .hi-year {
+            font-size: 0.78rem;
+            color: var(--text-light);
+        }
+
+        .history-item .hi-price {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .history-item .hi-note {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .history-item.highlight {
+            background: linear-gradient(135deg, #fefcbf, #fef3c7);
+            border-color: #d69e2e;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #6b46c1, #3182ce, #38a169);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 12px 0 20px 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 16px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #6b46c1;
+        }
+
+        .timeline-item .tl-year {
+            font-weight: 800;
+            color: var(--primary-light);
+            font-size: 0.9rem;
+        }
+
+        .timeline-item .tl-target {
+            font-weight: 700;
+            color: var(--primary);
+            margin: 2px 0;
+        }
+
+        .timeline-item .tl-desc {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--text-light);
+            font-size: 0.82rem;
+            line-height: 1.8;
+        }
+
+        .footer .disclaimer {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 0 auto 24px;
+            max-width: 800px;
+            text-align: left;
+            font-size: 0.82rem;
+            color: #742a2a;
+        }
+
+        /* Print */
+        @media print {
+            body { background: white; }
+            .section { box-shadow: none; border: 1px solid #ddd; }
+            .header { background: var(--primary) !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="container">
+        <h1>BGF (027410) 종합 분석 보고서</h1>
+        <div class="subtitle">CU편의점 지주회사 | 소재 신사업 확대 | 코스피 상장</div>
+        <div class="badge">분석 기준일: 2026년 3월 27일</div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="label">현재 주가</div>
+            <div class="value">4,405원</div>
+            <div class="note">전일대비 -2.65%</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">시가총액</div>
+            <div class="value">4,216억</div>
+            <div class="note">코스피 지주회사</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">PBR</div>
+            <div class="value green">0.24배</div>
+            <div class="note">극심한 지주사 디스카운트</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">영업이익 (2025)</div>
+            <div class="value green">612억</div>
+            <div class="note">전년비 +10.9%</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">배당수익률</div>
+            <div class="value green">2.95%</div>
+            <div class="note">안정적 현금 배당</div>
+        </div>
+    </div>
+
+    <!-- 1. 기업 개요 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#ebf8ff;">&#127970;</span> 기업 개요</h2>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>내용</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">종목코드</td><td>027410 (코스피)</td></tr>
+                <tr><td class="text-bold">대표이사</td><td>홍정국 (부회장)</td></tr>
+                <tr><td class="text-bold">주요 사업</td><td>순수지주회사 (자회사 배당수입, 브랜드 사용료)</td></tr>
+                <tr><td class="text-bold">설립일</td><td>1994년 12월 1일</td></tr>
+                <tr><td class="text-bold">상장일</td><td>2014년 5월 19일</td></tr>
+                <tr><td class="text-bold">핵심 자회사</td><td>BGF리테일(CU편의점), BGF에코머티리얼즈(소재)</td></tr>
+                <tr><td class="text-bold">최대주주</td><td>홍석조 외 특수관계인 (69.71%)</td></tr>
+                <tr><td class="text-bold">외국인 지분율</td><td>3.17%</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.9rem; color:var(--text-light);">
+            BGF는 2017년 BGF리테일에서 인적분할하여 설립된 순수지주회사입니다. 한국 최대 편의점 체인 CU를 운영하는 BGF리테일과 엔지니어링 플라스틱/반도체 소재를 생산하는 BGF에코머티리얼즈를 양대 축으로 사업을 영위하고 있습니다.
+        </p>
+    </div>
+
+    <!-- 지주회사 구조 -->
+    <div class="subsidiary-header">
+        <h2><span class="icon" style="background:rgba(255,255,255,0.2);">&#127963;</span> BGF 그룹 지배구조</h2>
+        <div class="sub-grid">
+            <div class="sub-box">
+                <div class="sub-label">유통 부문 (장남)</div>
+                <div class="sub-value">BGF리테일</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:4px;">CU 17,000점+</div>
+            </div>
+            <div class="sub-arrow">|</div>
+            <div class="sub-box">
+                <div class="sub-label">지주회사</div>
+                <div class="sub-value" style="color:#fbd38d;">BGF</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:4px;">홍석조 회장 69.71%</div>
+            </div>
+            <div class="sub-arrow">|</div>
+            <div class="sub-box">
+                <div class="sub-label">소재 부문 (차남)</div>
+                <div class="sub-value">에코머티리얼즈</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:4px;">BGF 지분 69.95%</div>
+            </div>
+        </div>
+        <div style="margin-top:16px; font-size:0.85rem; opacity:0.9;">
+            2세 경영승계 진행 중: 홍정국(장남, 유통) / 홍정혁(차남, 소재)
+        </div>
+    </div>
+
+    <!-- 2. 재무 실적 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#fefcbf;">&#128200;</span> 재무 실적 현황 (IFRS 연결)</h2>
+
+        <table>
+            <thead>
+                <tr><th>항목</th><th>2022년</th><th>2023년</th><th>2024년</th><th>2025년</th><th>전년비</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">매출액</td>
+                    <td>4,350억</td>
+                    <td>3,564억</td>
+                    <td>4,341억</td>
+                    <td>4,695억</td>
+                    <td class="text-green">+8.2%</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">영업이익</td>
+                    <td class="text-green">612억</td>
+                    <td class="text-green">606억</td>
+                    <td class="text-green">552억</td>
+                    <td class="text-green">612억</td>
+                    <td class="text-green">+10.9%</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">당기순이익</td>
+                    <td class="text-green">262억</td>
+                    <td class="text-green">691억</td>
+                    <td class="text-green">948억</td>
+                    <td class="text-green">564억</td>
+                    <td class="text-red">-40.5%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>매출액 추이</h3>
+        <div class="chart-bar">
+            <span class="bar-label">2022</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:93%;">4,350억</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">2023</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:76%;">3,564억</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">2024</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:92%;">4,341억</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">2025</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:100%;">4,695억</div>
+            </div>
+        </div>
+
+        <h3>영업이익 추이</h3>
+        <div class="chart-bar">
+            <span class="bar-label">2022</span>
+            <div class="bar-track">
+                <div class="bar-fill green" style="width:100%;">612억</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">2023</span>
+            <div class="bar-track">
+                <div class="bar-fill green" style="width:99%;">606억</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">2024</span>
+            <div class="bar-track">
+                <div class="bar-fill green" style="width:90%;">552억</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">2025</span>
+            <div class="bar-track">
+                <div class="bar-fill green" style="width:100%;">612억</div>
+            </div>
+        </div>
+
+        <h3>주요 재무비율</h3>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>2022년</th><th>2023년</th><th>2024년</th><th>2025년</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">부채비율</td>
+                    <td class="text-green">11.6%</td>
+                    <td class="text-green">14.2%</td>
+                    <td class="text-green">16.2%</td>
+                    <td class="text-green">18.6%</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">유보율</td>
+                    <td>1,553%</td>
+                    <td>1,629%</td>
+                    <td>1,720%</td>
+                    <td>1,768%</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">ROE</td>
+                    <td>1.50%</td>
+                    <td>4.81%</td>
+                    <td>5.43%</td>
+                    <td>3.35%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-success" style="margin-top:20px;">
+            <strong>재무 건전성 우수</strong>
+            부채비율 18.6%로 매우 낮고, 유보율 1,768%로 내부 유보금이 풍부합니다. 영업이익은 매년 500~600억원대를 안정적으로 유지하고 있으며, 2025년 매출은 전년 대비 8.2% 성장했습니다.
+        </div>
+    </div>
+
+    <!-- 3. 자회사 구조 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#e9d8fd;">&#127961;</span> 핵심 자회사 현황</h2>
+
+        <h3>유통 부문 (홍정국 부회장 총괄)</h3>
+        <table>
+            <thead>
+                <tr><th>자회사</th><th>사업 내용</th><th>비고</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">BGF리테일 (282330)</td><td>편의점 CU 운영 (국내 1위)</td><td>코스피 상장, 국내 17,000점+ / 해외 750점+</td></tr>
+                <tr><td class="text-bold">BGF로지스 (353590)</td><td>편의점 물류, 택배 서비스</td><td>BGF리테일 산하</td></tr>
+                <tr><td class="text-bold">BGF푸드</td><td>도시락/신선식품 제조</td><td>BGF리테일 산하</td></tr>
+            </tbody>
+        </table>
+
+        <h3>소재 부문 (홍정혁 사장 총괄)</h3>
+        <table>
+            <thead>
+                <tr><th>자회사</th><th>사업 내용</th><th>비고</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">BGF에코머티리얼즈 (126600)</td><td>엔지니어링 플라스틱, 폴리머 소재</td><td>코스피 상장, BGF 지분 69.95%</td></tr>
+                <tr><td class="text-bold">BGF에코스페셜티</td><td>반도체 공정용 특수가스 (무수불산)</td><td class="text-green">1,500억 투자, 2026년 완공</td></tr>
+                <tr><td class="text-bold">KNW (케이엔더블유)</td><td>자동차 내장재, 전자부품</td><td>소재 부문</td></tr>
+                <tr><td class="text-bold">대원케미칼</td><td>자동차용 PP 소재</td><td>2024.10 인수(722억), 2025.9 합병 예정</td></tr>
+                <tr><td class="text-bold">BGF에코솔루션</td><td>생분해성 플라스틱</td><td>친환경 소재</td></tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-info">
+            <strong>2025년 지배구조 개편</strong>
+            BGF는 BGF네트웍스 지분 100%와 물류 자회사 지분을 BGF리테일에 총 853억원에 매각하여, 유통 부문을 BGF리테일 산하로 수직계열화하고 소재 부문 투자 재원을 확보했습니다. 2세 경영승계의 핵심 과정입니다.
+        </div>
+    </div>
+
+    <!-- 4. 핵심 변수: 소재 신사업 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#fed7d7;">&#9888;&#65039;</span> 핵심 변수: 무수불산 국산화 프로젝트</h2>
+
+        <div class="alert alert-highlight">
+            <strong>이번 분석의 가장 중요한 포인트</strong>
+            BGF에코스페셜티가 국내 무수불산 제조시설에 약 <strong>1,500억원</strong>을 투자하고 있으며, 2026년 완공 목표입니다.
+            국내 사용량의 절반인 약 5만톤 생산을 계획하고 있어, 성공 시 소재 부문의 <strong>게임 체인저</strong>가 될 수 있습니다.
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>항목</th><th>내용</th><th>비고</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">투자 규모</td><td>약 1,500억원</td><td>BGF그룹 소재부문 역대 최대 투자</td></tr>
+                <tr><td class="text-bold">완공 목표</td><td>2026년</td><td>현재 건설 진행 중</td></tr>
+                <tr><td class="text-bold">생산 목표</td><td>연간 약 5만톤</td><td>국내 수요의 약 50%</td></tr>
+                <tr><td class="text-bold">용도</td><td>반도체, 이차전지 핵심 원료</td><td class="text-green">첨단산업 수혜</td></tr>
+                <tr><td class="text-bold">국산화 의의</td><td>해외 의존도 감축</td><td class="text-green">정부 공급망 정책 부합</td></tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-success">
+            무수불산은 반도체 세정/식각 공정과 이차전지 전해질(LiPF6) 제조에 필수적인 소재입니다. 현재 대부분 수입에 의존하고 있어, 국산화 성공 시 <strong>안정적 수요와 가격 프리미엄</strong>을 확보할 수 있습니다.
+        </div>
+    </div>
+
+    <!-- 5. 산업 환경 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#e9d8fd;">&#127959;</span> 산업 환경 및 전망</h2>
+
+        <h3>편의점 산업 동향</h3>
+        <div class="alert alert-highlight">
+            <strong>편의점 시장 포화 신호</strong>
+            2025년 국내 편의점 역사상 처음으로 총 점포 수가 순감했습니다 (1월 48,724개 &rarr; 8월 47,981개).
+            GS리테일, 코리아세븐(세븐일레븐) 등 경쟁사가 희망퇴직을 단행하는 등 업계 구조조정이 진행 중입니다.
+        </div>
+
+        <h3>편의점 시장 점유율 (점포 수 기준)</h3>
+        <div class="chart-bar">
+            <span class="bar-label" style="color:var(--primary); font-weight:800;">CU (BGF)</span>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:85%; background:linear-gradient(90deg, #e53e3e, #c53030);">17,000점+ (1위)</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">GS25</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:82%;">16,500점+ (2위)</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">세븐일레븐</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:55%;">13,000점+ (3위)</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">이마트24</span>
+            <div class="bar-track">
+                <div class="bar-fill blue" style="width:30%; opacity:0.6;">6,000점+</div>
+            </div>
+        </div>
+
+        <h3>소재/화학 산업 전망</h3>
+        <table>
+            <thead>
+                <tr><th>분야</th><th>전망</th><th>BGF 관련성</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">반도체 소재 국산화</td><td class="text-green">정부 8대 공급망 선도 프로젝트 추진</td><td class="text-green">무수불산 직접 수혜</td></tr>
+                <tr><td class="text-bold">자동차 경량화</td><td class="text-green">전기차 확대로 경량 소재 수요 증가</td><td>대원케미칼 PP 소재</td></tr>
+                <tr><td class="text-bold">친환경 소재</td><td class="text-green">탈플라스틱 규제 강화</td><td>BGF에코솔루션 생분해 플라스틱</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 6. 성장 동력 vs 리스크 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#c6f6d5;">&#9878;</span> 성장 동력 vs 리스크 요인</h2>
+
+        <div class="factor-grid">
+            <div class="factor-col">
+                <h3 style="color:var(--accent-green);">&#9650; 긍정적 요인 (Bull Case)</h3>
+
+                <div class="factor-item positive">
+                    <div class="factor-title">CU 해외 확장 가속</div>
+                    <div class="factor-desc">몽골, 말레이시아, 카자흐스탄, 미국 하와이 진출. 해외 750점+, 3년 내 미국 50점 목표</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">무수불산 국산화 (1,500억 투자)</div>
+                    <div class="factor-desc">반도체/이차전지 핵심 소재. 2026년 완공 시 연 5만톤 생산, 국내 수요의 50% 커버</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">PBR 0.24배 극단적 저평가</div>
+                    <div class="factor-desc">BPS 18,675원 대비 주가 4,405원. 부채비율 18.6%, 유보율 1,768%의 건전한 재무</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">안정적 배당 (수익률 2.95%)</div>
+                    <div class="factor-desc">지주회사 특성상 자회사 배당을 통한 안정적 현금흐름 확보</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">자동차 소재 사업 확대</div>
+                    <div class="factor-desc">대원케미칼 인수(722억)로 현대차 공급 무도장 메탈릭 복합소재(MIC) 역량 강화</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">밸류업 프로그램 수혜 기대</div>
+                    <div class="factor-desc">정부 기업 밸류업 프로그램으로 저PBR 지주회사 재평가 가능성</div>
+                </div>
+            </div>
+
+            <div class="factor-col">
+                <h3 style="color:var(--accent);">&#9660; 부정적 요인 (Bear Case)</h3>
+
+                <div class="factor-item negative">
+                    <div class="factor-title">편의점 시장 포화</div>
+                    <div class="factor-desc">2025년 국내 편의점 역사상 첫 점포 수 순감. 성장 한계 도달 우려</div>
+                </div>
+                <div class="factor-item negative">
+                    <div class="factor-title">지주회사 디스카운트 고착화</div>
+                    <div class="factor-desc">PBR 0.24배로 극심한 저평가. 지주사 특성상 주가 재평가 촉매 부족</div>
+                </div>
+                <div class="factor-item negative">
+                    <div class="factor-title">소재사업 대규모 투자 리스크</div>
+                    <div class="factor-desc">무수불산 1,500억+, M&A 3,000억+ 투자. 사업 성공 불확실성 존재</div>
+                </div>
+                <div class="factor-item negative">
+                    <div class="factor-title">소비 경기 침체</div>
+                    <div class="factor-desc">내수 소비 위축으로 편의점 동일점포 매출 성장 둔화, 인건비 상승 압박</div>
+                </div>
+                <div class="factor-item negative">
+                    <div class="factor-title">경영승계 불확실성</div>
+                    <div class="factor-desc">2세 승계 과정에서 지배구조 변동, 의사결정 공백 가능성</div>
+                </div>
+                <div class="factor-item negative">
+                    <div class="factor-title">증권사 커버리지 제한</div>
+                    <div class="factor-desc">BGF 지주회사 커버리지 1개사. 대부분 BGF리테일 중심 분석</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. 주가 전망 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#fefcbf;">&#128178;</span> 주가 전망 시나리오</h2>
+
+        <h3>52주 주가 범위 내 현재 위치</h3>
+        <div class="price-range">
+            <div class="marker" style="left: 85%;">
+                <div class="marker-label">현재가 4,405원</div>
+            </div>
+            <div class="range-labels">
+                <span>52주 최저 3,320원</span>
+                <span>52주 최고 4,590원</span>
+            </div>
+        </div>
+
+        <h3>투자 지표 현황</h3>
+        <table>
+            <thead>
+                <tr><th>지표</th><th>현재 수치</th><th>의미</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">PER</td><td>7.13배</td><td>업종 대비 저평가</td></tr>
+                <tr><td class="text-bold">PBR</td><td class="text-green">0.24배</td><td>BPS 18,675원 대비 76% 할인</td></tr>
+                <tr><td class="text-bold">EPS</td><td>618원</td><td>주당순이익</td></tr>
+                <tr><td class="text-bold">BPS</td><td class="text-bold">18,675원</td><td>주당순자산가치</td></tr>
+                <tr><td class="text-bold">배당수익률</td><td class="text-green">2.95%</td><td>은행 금리 대비 매력적</td></tr>
+                <tr><td class="text-bold">베타</td><td>0.37</td><td>시장 대비 낮은 변동성</td></tr>
+            </tbody>
+        </table>
+
+        <h3>시나리오별 목표 주가</h3>
+        <div class="scenario-grid">
+            <div class="scenario-card bull">
+                <div class="scenario-label">&#9650; Bull (강세)</div>
+                <div class="scenario-price" style="color:#276749;">6,500 ~ 8,000원</div>
+                <div class="scenario-condition">
+                    무수불산 사업 성공 가시화<br>
+                    CU 해외 수익 본격화<br>
+                    밸류업 프로그램 수혜<br>
+                    <strong>PBR 0.35~0.43배 복원</strong>
+                </div>
+            </div>
+            <div class="scenario-card base">
+                <div class="scenario-label">&#9644; Base (기본)</div>
+                <div class="scenario-price" style="color:#2b6cb0;">5,000 ~ 6,000원</div>
+                <div class="scenario-condition">
+                    CU 안정적 성장 유지<br>
+                    소재부문 점진적 기여<br>
+                    배당 꾸준히 유지<br>
+                    <strong>증권사 목표가 6,000원</strong>
+                </div>
+            </div>
+            <div class="scenario-card bear">
+                <div class="scenario-label">&#9660; Bear (약세)</div>
+                <div class="scenario-price" style="color:#c53030;">3,500 ~ 4,000원</div>
+                <div class="scenario-condition">
+                    소비 경기 장기 침체<br>
+                    소재사업 투자 회수 지연<br>
+                    지주사 디스카운트 심화
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. NAV 분석 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#fed7e2;">&#128270;</span> NAV(순자산가치) 분석: 지주사 디스카운트 진단</h2>
+
+        <div class="alert alert-info">
+            <strong>지주회사 가치 평가의 핵심</strong>
+            BGF의 적정 가치는 보유 자회사 지분가치의 합산(NAV)에서 산출됩니다.
+            현재 PBR 0.24배는 자산 대비 <strong>76% 할인</strong>된 상태로, 한국 지주회사 중에서도 상당히 높은 디스카운트 수준입니다.
+        </div>
+
+        <h3>지주사 디스카운트 해소 시나리오</h3>
+
+        <div class="condition-card critical">
+            <div class="condition-header">
+                <div class="condition-number">1</div>
+                <div class="condition-title">소재사업 가치 가시화 (무수불산 매출 발생)</div>
+            </div>
+            <div class="condition-body">
+                2026년 무수불산 제조시설 완공 후 매출이 본격 발생하면, 소재 부문의 독자적 가치가 시장에서 인정받기 시작합니다. 이는 지주사 리레이팅의 가장 큰 촉매가 될 수 있습니다.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">투자 규모</div>
+                    <div class="metric-value">1,500억</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">예상 매출 기여</div>
+                    <div class="metric-value" style="color:#38a169;">수백억원대</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">완공 시기</div>
+                    <div class="metric-value">2026년</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card important">
+            <div class="condition-header">
+                <div class="condition-number">2</div>
+                <div class="condition-title">CU 해외사업 수익성 확보</div>
+            </div>
+            <div class="condition-body">
+                현재 해외 750개점 이상 운영 중이나, 해외사업의 수익 기여는 아직 제한적입니다. 3년 내 미국 50점 목표 달성과 함께 해외 부문이 흑자 전환해야 성장주로서의 프리미엄이 부여됩니다.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">해외 점포</div>
+                    <div class="metric-value">750점+</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">진출국</div>
+                    <div class="metric-value">5개국</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">미국 목표</div>
+                    <div class="metric-value">50점 (3년)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card bonus">
+            <div class="condition-header">
+                <div class="condition-number">3</div>
+                <div class="condition-title">기업 밸류업 프로그램 & 배당 확대</div>
+            </div>
+            <div class="condition-body">
+                정부의 기업 밸류업 프로그램 확대, 배당 성향 제고, 자사주 매입/소각 등 주주환원 정책 강화 시 지주사 디스카운트가 축소될 수 있습니다. 현재 배당수익률 2.95%는 양호하나, 적극적인 주주환원 의지 표명이 추가로 필요합니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. 최근 주요 이슈 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#fefcbf;">&#128240;</span> 최근 주요 이슈 (2025~2026년)</h2>
+
+        <table>
+            <thead>
+                <tr><th>시기</th><th>이슈</th><th>영향</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">2026.01</td>
+                    <td>BGF그룹 2026년 조직개편 &mdash; 글로벌/중장기 전략 중심 인사</td>
+                    <td>해외 확장 의지 재확인</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2025.11</td>
+                    <td>BGF로지스, 국가재난관리물류기업 지정</td>
+                    <td class="text-green">정부 사업 참여 기회 확대</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2025</td>
+                    <td>CU 미국 하와이 진출 (K-편의점 최초 미국 매장)</td>
+                    <td class="text-green">글로벌 브랜드 인지도 제고</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2025</td>
+                    <td>BGF네트웍스/물류 자회사 BGF리테일에 853억원 매각</td>
+                    <td>유통/소재 분리, 소재 투자 재원 확보</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2025</td>
+                    <td>국내 편의점 총 점포 수 첫 순감</td>
+                    <td class="text-red">시장 포화 우려</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2024.10</td>
+                    <td>BGF에코머티리얼즈, 대원케미칼 722억원 인수</td>
+                    <td>자동차 소재 사업 확장</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2024.06</td>
+                    <td>무수불산 제조시설 1,500억원 투자 확정</td>
+                    <td class="text-green">소재 신사업 본격화</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SPECIAL: BGF에코머티리얼즈 최대 성장 시나리오 -->
+    <div class="subsidiary-header">
+        <h2><span class="icon" style="background:rgba(255,255,255,0.2);">&#127919;</span> SPECIAL: BGF에코머티리얼즈 최대 성장 가정 &rarr; BGF 목표주가</h2>
+        <div class="sub-grid">
+            <div class="sub-box">
+                <div class="sub-label">에코머티리얼즈 현재 시총</div>
+                <div class="sub-value">2,300억</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:4px;">주가 3,580원 / PBR 0.55배</div>
+            </div>
+            <div class="sub-arrow">&rarr;</div>
+            <div class="sub-box">
+                <div class="sub-label">최대 성장 시 시총</div>
+                <div class="sub-value" style="color:#9ae6b4;">6,000~8,000억</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:4px;">무수불산 + EP 성장 반영</div>
+            </div>
+            <div class="sub-arrow">&rarr;</div>
+            <div class="sub-box">
+                <div class="sub-label">BGF 지분가치 변동</div>
+                <div class="sub-value" style="color:#fbd38d;">+2,600~4,000억</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:4px;">BGF 보유 지분 69.95%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2><span class="icon" style="background:#e9d8fd;">&#128300;</span> BGF에코머티리얼즈 최대 성장 시나리오 분석</h2>
+
+        <div class="alert alert-info">
+            <strong>분석 전제: 모든 성장 변수가 최대한 긍정적으로 실현되는 경우를 가정합니다</strong>
+            무수불산 5만톤 + 추가증설 5만톤 성공, EP/재생소재 시장 성장, 대원케미칼 시너지 극대화, 반도체 업황 호조가 동시에 달성되는 시나리오입니다.
+        </div>
+
+        <h3>BGF에코머티리얼즈 현재 실적 vs 최대 성장 목표</h3>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>2025년 (현재)</th><th>2027년 (1차 성장)</th><th>2029년 (최대 성장)</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">매출액</td>
+                    <td>3,979억</td>
+                    <td class="text-green">5,200~5,500억</td>
+                    <td class="text-green">6,500~7,500억</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">영업이익</td>
+                    <td>173억 (4.4%)</td>
+                    <td class="text-green">400~500억 (8~9%)</td>
+                    <td class="text-green">700~900억 (10~12%)</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">당기순이익</td>
+                    <td>100억</td>
+                    <td class="text-green">300~400억</td>
+                    <td class="text-green">500~700억</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>최대 성장 가정의 핵심 구성 요소</h3>
+
+        <div class="condition-card critical">
+            <div class="condition-header">
+                <div class="condition-number">1</div>
+                <div class="condition-title">무수불산 1차 공장 풀가동 (연 5만톤, 2026~2027)</div>
+            </div>
+            <div class="condition-body">
+                2026년 공장 완공 후 가동률 80~100% 달성 시, 톤당 약 200만원 기준 연 매출 800~1,000억원 추가.
+                삼성전자 등 국내 반도체 고객 확보가 핵심. 국내 유일 경쟁사인 후성(연 2만톤)과의 차별화 필요.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">예상 추가 매출</div>
+                    <div class="metric-value" style="color:#38a169;">800~1,000억</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">예상 이익률</div>
+                    <div class="metric-value">15~20%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">가동 개시</div>
+                    <div class="metric-value">2026년 하반기</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card critical">
+            <div class="condition-header">
+                <div class="condition-number">2</div>
+                <div class="condition-title">무수불산 2차 증설 (추가 5만톤, 2028~2029)</div>
+            </div>
+            <div class="condition-body">
+                회사가 검토 중인 동일 규모 추가 증설이 실현되면, 총 10만톤 체제 구축.
+                이는 국내 전체 사용량(약 10만톤)을 단독 커버할 수 있는 규모로, 연 매출 1,500~2,000억원 규모.
+                단, 1차 공장의 성공적 가동과 수요 확인이 전제조건.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">추가 투자</div>
+                    <div class="metric-value" style="color:#e53e3e;">1,000~1,500억</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">총 생산능력</div>
+                    <div class="metric-value">10만톤/년</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">총 매출 기여</div>
+                    <div class="metric-value" style="color:#38a169;">1,500~2,000억</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card important">
+            <div class="condition-header">
+                <div class="condition-number">3</div>
+                <div class="condition-title">EP/자동차 소재 사업 성장 (대원케미칼 시너지 포함)</div>
+            </div>
+            <div class="condition-body">
+                기존 EP(엔지니어링 플라스틱) 사업의 연평균 6~7% 성장 + 대원케미칼 합병 시너지(PP 재생소재)
+                + 전기차 경량화 소재 수요 확대를 반영. 한국 EP 시장 CAGR 5.9%, 자동차 부문 CAGR 6.8%.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">EP 시장 CAGR</div>
+                    <div class="metric-value">5.9%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">자동차 소재 CAGR</div>
+                    <div class="metric-value">6.8%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">대원케미칼 매출</div>
+                    <div class="metric-value">연 500억+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card bonus">
+            <div class="condition-header">
+                <div class="condition-number">4</div>
+                <div class="condition-title">F2 가스/SF6 + 반도체 특수가스 성장 (삼성전자 공급)</div>
+            </div>
+            <div class="condition-body">
+                자회사 KNW/플루오린코리아를 통한 F2(불소) 가스 공급 확대. F2 가스는 기존 NF3/CF4를 대체하는 친환경 세정가스로, 삼성전자가 최대 고객. 반도체 미세화/고단화에 따른 구조적 수요 증가.
+                무수불산 자체 생산 시 F2 가스 원가 절감 시너지도 기대됩니다.
+            </div>
+        </div>
+
+        <h3>최대 성장 시 BGF에코머티리얼즈 밸류에이션</h3>
+        <table>
+            <thead>
+                <tr><th>시나리오</th><th>예상 순이익</th><th>적용 PER</th><th>시가총액</th><th>주가 (에코머티)</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">현재 (2025)</td>
+                    <td>100억</td>
+                    <td>16배</td>
+                    <td>2,300억</td>
+                    <td>3,580원</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">1차 성장 (2027)</td>
+                    <td class="text-green">300~400억</td>
+                    <td>15~18배</td>
+                    <td class="text-green">4,500~7,200억</td>
+                    <td class="text-green">7,000~11,200원</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">최대 성장 (2029)</td>
+                    <td class="text-green">500~700억</td>
+                    <td>12~15배</td>
+                    <td class="text-green">6,000~10,500억</td>
+                    <td class="text-green">9,300~16,300원</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-success">
+            <strong>리서치알음 목표주가: 10,000원 (2024.06 기준)</strong>
+            무수불산 국산화 소식 반영 시 "상한가를 가도 이상하지 않을 호재"로 평가. 현재 주가 3,580원 대비 +179% 괴리.
+        </div>
+
+        <h3>에코머티리얼즈 성장이 BGF 주가에 미치는 영향</h3>
+
+        <div class="alert alert-highlight">
+            <strong>핵심 계산: BGF의 에코머티리얼즈 지분가치 변동</strong>
+            BGF는 에코머티리얼즈 지분 <strong>69.95%</strong>를 보유. 에코머티리얼즈의 시총 변화는 BGF의 NAV(순자산가치)에 직접 반영됩니다.
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>시나리오</th><th>에코머티 시총</th><th>BGF 지분가치<br>(69.95%)</th><th>현재 대비<br>지분가치 증가</th><th>BGF 주당 가치 증가<br>(9,572만주)</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">현재</td>
+                    <td>2,300억</td>
+                    <td>1,609억</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">1차 성장 (2027)</td>
+                    <td class="text-green">5,000억</td>
+                    <td class="text-green">3,498억</td>
+                    <td class="text-green">+1,889억</td>
+                    <td class="text-green">+1,973원</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">최대 성장 (2029)</td>
+                    <td class="text-green">8,000억</td>
+                    <td class="text-green">5,596억</td>
+                    <td class="text-green">+3,987억</td>
+                    <td class="text-green">+4,165원</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">극단적 낙관</td>
+                    <td class="text-green">10,500억</td>
+                    <td class="text-green">7,345억</td>
+                    <td class="text-green">+5,736억</td>
+                    <td class="text-green">+5,992원</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>에코머티리얼즈 성장 반영 BGF 목표주가</h3>
+        <div class="scenario-grid">
+            <div class="scenario-card bull">
+                <div class="scenario-label">&#9650; 최대 성장 (극단적 낙관)</div>
+                <div class="scenario-price" style="color:#276749;">8,500 ~ 10,400원</div>
+                <div class="scenario-condition">
+                    에코머티 시총 8,000~10,500억<br>
+                    무수불산 10만톤 풀가동<br>
+                    BGF NAV 기반 +4,165~5,992원<br>
+                    <strong>현재가 대비 +93~136%</strong>
+                </div>
+            </div>
+            <div class="scenario-card base">
+                <div class="scenario-label">&#9644; 1차 성장 (현실적 낙관)</div>
+                <div class="scenario-price" style="color:#2b6cb0;">6,400 ~ 7,500원</div>
+                <div class="scenario-condition">
+                    에코머티 시총 5,000억<br>
+                    무수불산 5만톤 정상 가동<br>
+                    BGF NAV 기반 +1,973원<br>
+                    <strong>현재가 대비 +45~70%</strong>
+                </div>
+            </div>
+            <div class="scenario-card bear">
+                <div class="scenario-label">&#9660; 성장 지연</div>
+                <div class="scenario-price" style="color:#c53030;">4,000 ~ 5,000원</div>
+                <div class="scenario-condition">
+                    무수불산 가동 지연/수익성 부진<br>
+                    에코머티 시총 정체<br>
+                    지주사 디스카운트 유지
+                </div>
+            </div>
+        </div>
+
+        <div class="verdict-box">
+            <div class="verdict-title">에코머티리얼즈 최대 성장 시 BGF 목표주가 판단</div>
+            <div class="verdict-score">
+                <div class="score-circle">
+                    <div class="score-num">8.5K</div>
+                    <div class="score-label">~10.4K</div>
+                </div>
+                <div class="verdict-text">
+                    에코머티리얼즈의 모든 성장 변수가 최대한 실현될 경우, BGF의 에코머티리얼즈 지분가치만으로 주당 약 <strong>+4,200~6,000원</strong>의 가치 증가가 발생합니다.
+                    현재 BGF 주가 4,405원에 이를 더하면 <strong>8,500~10,400원</strong>이 이론적 상한입니다.
+                    <br><br>
+                    다만 이는 ① 무수불산 1차+2차 모두 성공 ② 반도체 업황 호조 지속 ③ 중국산 가격경쟁에서 승리 ④ 에코머티 PER 12~15배 적용이라는 <strong>4가지 낙관적 가정이 모두 충족</strong>될 때의 수치입니다.
+                    현실적으로는 1차 성장 시나리오(6,400~7,500원)가 더 합리적인 기대치입니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPECIAL: PBR 0.8배 실현 가능성 분석 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#fed7e2;">&#128270;</span> SPECIAL: PBR 0.8배(14,940원) 실현 가능성 분석</h2>
+
+        <div class="alert alert-highlight">
+            <strong>PBR 0.8배 = BPS 18,675원 &times; 0.8 = 주가 14,940원</strong>
+            현재가 4,405원 대비 <strong>+239% 상승</strong> 필요 | 시가총액 4,216억 &rarr; <strong>약 14,300억원</strong> 필요
+        </div>
+
+        <h3>PBR 0.8배가 의미하는 것</h3>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>현재</th><th>PBR 0.8배 시</th><th>차이</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">주가</td>
+                    <td>4,405원</td>
+                    <td class="text-green">14,940원</td>
+                    <td class="text-green">+239%</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">시가총액</td>
+                    <td>4,216억</td>
+                    <td class="text-green">14,300억</td>
+                    <td class="text-green">+10,084억</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">PBR</td>
+                    <td>0.24배</td>
+                    <td>0.80배</td>
+                    <td>+0.56배</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>PBR 0.8배 달성을 위한 필수 조건</h3>
+
+        <div class="condition-card critical">
+            <div class="condition-header">
+                <div class="condition-number">1</div>
+                <div class="condition-title">지주회사 디스카운트 대폭 축소 (현재 76% &rarr; 20%)</div>
+            </div>
+            <div class="condition-body">
+                한국 지주회사 평균 PBR은 0.3~0.5배 수준입니다. PBR 0.8배는 <strong>한국 지주사 중 상위 10%</strong>에 해당하며,
+                LG, SK, 삼성물산 등 대형 지주사들도 0.5~0.7배에 거래됩니다.
+                0.8배 달성을 위해서는 밸류업 프로그램 + 적극적 주주환원 + 사업가치 재평가가 <strong>동시에</strong> 필요합니다.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">한국 지주사 평균 PBR</div>
+                    <div class="metric-value">0.3~0.5배</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">BGF 현재</div>
+                    <div class="metric-value" style="color:#e53e3e;">0.24배</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">목표</div>
+                    <div class="metric-value" style="color:#e53e3e;">0.80배</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card critical">
+            <div class="condition-header">
+                <div class="condition-number">2</div>
+                <div class="condition-title">BGF리테일(CU) 기업가치 대폭 상승</div>
+            </div>
+            <div class="condition-body">
+                BGF의 NAV 중 가장 큰 비중을 차지하는 것은 BGF리테일 지분가치입니다.
+                CU 해외사업(미국, 몽골, 말레이시아 등)이 본격 수익을 내고, 국내 편의점 시장에서 압도적 1위를 유지하면서
+                BGF리테일 시가총액이 현재 대비 <strong>50% 이상 상승</strong>해야 합니다.
+            </div>
+            <div class="condition-metrics">
+                <div class="metric">
+                    <div class="metric-label">BGF리테일 목표주가</div>
+                    <div class="metric-value">142,500~150,000원</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">CU 해외점포</div>
+                    <div class="metric-value">750점+ (확대 중)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="condition-card critical">
+            <div class="condition-header">
+                <div class="condition-number">3</div>
+                <div class="condition-title">에코머티리얼즈 소재사업 대성공</div>
+            </div>
+            <div class="condition-body">
+                앞서 분석한 무수불산 최대 성장 시나리오(에코머티 시총 8,000~10,500억)가 달성되어
+                BGF의 소재 부문 지분가치가 현재 대비 <strong>3~4배 증가</strong>해야 합니다.
+                이는 무수불산 10만톤 풀가동 + EP 사업 성장 + 반도체 업황 호조가 모두 전제됩니다.
+            </div>
+        </div>
+
+        <div class="condition-card important">
+            <div class="condition-header">
+                <div class="condition-number">4</div>
+                <div class="condition-title">적극적 주주환원 정책 (배당 확대 + 자사주 매입)</div>
+            </div>
+            <div class="condition-body">
+                현재 배당수익률 2.95%는 양호하나, PBR 0.8배 달성을 위해서는 배당성향 40% 이상 + 자사주 매입/소각 등
+                <strong>시장이 인정할 수 있는 수준의 주주환원</strong>이 필요합니다.
+                일본의 지주회사 밸류업 사례처럼, 자사주 소각을 통한 BPS 증가 + 배당 확대가 동시에 진행되어야 합니다.
+            </div>
+        </div>
+
+        <div class="condition-card bonus">
+            <div class="condition-header">
+                <div class="condition-number">5</div>
+                <div class="condition-title">밸류업 정책 강화 + 지주사 규제 완화</div>
+            </div>
+            <div class="condition-body">
+                정부의 기업 밸류업 프로그램이 지주회사까지 확대되고, 자회사 배당 이중과세 해소,
+                지주회사 지분율 규제 완화 등 제도적 개선이 뒷받침되어야 합니다.
+                또한 외국인/기관 투자자의 저PBR 지주사 재평가 흐름이 형성되어야 합니다.
+            </div>
+        </div>
+
+        <h3>조건별 실현 가능성 평가</h3>
+        <table>
+            <thead>
+                <tr><th>조건</th><th>필요 수준</th><th>실현 가능성</th><th>판정</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">지주사 디스카운트 축소</td>
+                    <td>76% &rarr; 20%</td>
+                    <td>
+                        <div class="feasibility-gauge">
+                            <div class="gauge-track" style="height:14px;">
+                                <div class="gauge-marker" style="left:15%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-red">매우 낮음</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">BGF리테일 가치 상승</td>
+                    <td>시총 50%+ 상승</td>
+                    <td>
+                        <div class="feasibility-gauge">
+                            <div class="gauge-track" style="height:14px;">
+                                <div class="gauge-marker" style="left:35%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#dd6b20; font-weight:600;">낮음~중간</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">에코머티 소재사업 대성공</td>
+                    <td>시총 3~4배 증가</td>
+                    <td>
+                        <div class="feasibility-gauge">
+                            <div class="gauge-track" style="height:14px;">
+                                <div class="gauge-marker" style="left:25%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-red">낮음</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">적극적 주주환원</td>
+                    <td>배당성향 40%+ 자사주 소각</td>
+                    <td>
+                        <div class="feasibility-gauge">
+                            <div class="gauge-track" style="height:14px;">
+                                <div class="gauge-marker" style="left:20%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-red">낮음</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">밸류업 정책/규제 완화</td>
+                    <td>지주사 제도 개선</td>
+                    <td>
+                        <div class="feasibility-gauge">
+                            <div class="gauge-track" style="height:14px;">
+                                <div class="gauge-marker" style="left:30%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#dd6b20; font-weight:600;">낮음~중간</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>한국 지주회사 PBR 비교 (참고)</h3>
+        <table>
+            <thead>
+                <tr><th>지주회사</th><th>PBR</th><th>시가총액</th><th>특징</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="text-bold">삼성물산</td><td>0.65배</td><td>24조+</td><td>삼성그룹 지주, 건설/리조트/바이오</td></tr>
+                <tr><td class="text-bold">LG</td><td>0.55배</td><td>12조+</td><td>LG그룹 지주, 화학/전자/배터리</td></tr>
+                <tr><td class="text-bold">SK</td><td>0.40배</td><td>13조+</td><td>SK그룹 지주, 에너지/반도체/바이오</td></tr>
+                <tr><td class="text-bold">CJ</td><td>0.35배</td><td>3조+</td><td>CJ그룹 지주, 식품/엔터/물류</td></tr>
+                <tr><td class="text-bold" style="color:var(--accent);">BGF</td><td class="text-red">0.24배</td><td>4,216억</td><td>편의점/소재 지주</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.85rem; color:var(--text-light); margin-top:8px;">
+            * 삼성물산의 0.65배가 국내 지주사 PBR 상한에 가까우며, 이마저도 바이오(삼성바이오로직스) 프리미엄이 반영된 결과입니다.
+        </p>
+
+        <h3>PBR 단계별 주가 시뮬레이션</h3>
+        <table>
+            <thead>
+                <tr><th>PBR</th><th>주가</th><th>시가총액</th><th>현재 대비</th><th>실현 가능성</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">0.24배 (현재)</td>
+                    <td>4,405원</td>
+                    <td>4,216억</td>
+                    <td>-</td>
+                    <td>현재</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">0.35배</td>
+                    <td class="text-green">6,536원</td>
+                    <td>6,257억</td>
+                    <td class="text-green">+48%</td>
+                    <td class="text-green" style="font-weight:700;">중간 (달성 가능)</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">0.50배</td>
+                    <td class="text-green">9,338원</td>
+                    <td>8,939억</td>
+                    <td class="text-green">+112%</td>
+                    <td style="color:#dd6b20; font-weight:600;">낮음~중간</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">0.65배</td>
+                    <td class="text-green">12,139원</td>
+                    <td>11,620억</td>
+                    <td class="text-green">+176%</td>
+                    <td class="text-red">낮음</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">0.80배</td>
+                    <td class="text-green">14,940원</td>
+                    <td>14,300억</td>
+                    <td class="text-green">+239%</td>
+                    <td class="text-red">매우 낮음</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="chart-bar" style="margin-top:20px;">
+            <span class="bar-label">PBR 0.24</span>
+            <div class="bar-track">
+                <div class="bar-fill red" style="width:30%;">4,405원 (현재)</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">PBR 0.35</span>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:44%; background:linear-gradient(90deg, #dd6b20, #c05621);">6,536원</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">PBR 0.50</span>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:63%; background:linear-gradient(90deg, #d69e2e, #b7791f);">9,338원</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">PBR 0.65</span>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:81%; background:linear-gradient(90deg, #38a169, #276749);">12,139원</div>
+            </div>
+        </div>
+        <div class="chart-bar">
+            <span class="bar-label">PBR 0.80</span>
+            <div class="bar-track">
+                <div class="bar-fill green" style="width:100%;">14,940원</div>
+            </div>
+        </div>
+
+        <!-- 최종 판정 -->
+        <div class="verdict-box">
+            <div class="verdict-title">최종 판정: PBR 0.8배(14,940원) 도달 가능성</div>
+            <div class="verdict-score">
+                <div class="score-circle">
+                    <div class="score-num">5%</div>
+                    <div class="score-label">미만</div>
+                </div>
+                <div class="verdict-text">
+                    PBR 0.8배는 <strong>삼성물산(0.65배)을 넘어서는 수준</strong>으로, 한국 지주회사 역사상 극히 이례적인 밸류에이션입니다.
+                    지주사 디스카운트 76%→20% 축소 + BGF리테일/에코머티 동시 가치 상승 + 적극적 주주환원이라는
+                    <strong>복합 조건의 동시 달성</strong>이 필요하며, 이는 현실적으로 매우 어렵습니다.
+                    <br><br>
+                    <strong>현실적 상한선:</strong> 중기(2~3년) 기준 <strong>PBR 0.35~0.50배(6,500~9,300원)</strong>가 달성 가능한 범위로 판단됩니다.
+                    이는 에코머티 무수불산 1차 성공 + 밸류업 프로그램 수혜 + CU 해외성장이 반영된 수준입니다.
+                    <br><br>
+                    <strong>장기(5년+) 낙관 시나리오:</strong> 에코머티 소재사업 대성공 + 지주사 규제 완화까지 더해지면
+                    <strong>PBR 0.50~0.65배(9,300~12,100원)</strong>까지 가능하나, 0.8배 도달은 구조적으로 어려운 목표입니다.
+                </div>
+            </div>
+        </div>
+
+        <h3>단, 완전히 배제할 수 없는 와일드카드</h3>
+        <div class="factor-grid">
+            <div class="factor-col">
+                <div class="factor-item positive">
+                    <div class="factor-title">지주회사법 폐지/대폭 완화</div>
+                    <div class="factor-desc">공정거래법상 지주회사 제도 자체가 폐지되거나 대폭 완화될 경우, 지주사 디스카운트 구조 자체가 변화</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">대규모 자사주 소각</div>
+                    <div class="factor-desc">발행주식수 30%+ 소각 시 BPS 급증 + 수급 효과로 PBR 0.8배 달성 가속</div>
+                </div>
+            </div>
+            <div class="factor-col">
+                <div class="factor-item positive">
+                    <div class="factor-title">무수불산이 '국가전략물자'로 지정</div>
+                    <div class="factor-desc">반도체 공급망 위기 시 무수불산 국산화 기업에 대한 재평가. 방산주처럼 PER 급등 가능</div>
+                </div>
+                <div class="factor-item positive">
+                    <div class="factor-title">외국계 전략적 투자(SI) 유치</div>
+                    <div class="factor-desc">글로벌 PE/SWF가 CU 해외사업 가치에 주목하여 전략적 투자 시 밸류에이션 리레이팅</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. 종합 투자 포인트 -->
+    <div class="section">
+        <h2><span class="icon" style="background:#c6f6d5;">&#128161;</span> 종합 투자 포인트</h2>
+
+        <div class="alert alert-success">
+            <strong>핵심 판단: 극단적 저평가 지주회사 + 소재 신사업 성장 모멘텀</strong>
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>#</th><th>포인트</th><th>상세</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-bold">1</td>
+                    <td class="text-bold">PBR 0.24배 극단적 저평가</td>
+                    <td>BPS 18,675원 대비 주가 4,405원. 부채비율 18.6%, 유보율 1,768% &mdash; 자산 가치 대비 76% 할인 상태</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">2</td>
+                    <td class="text-bold">무수불산 국산화 모멘텀</td>
+                    <td>1,500억원 투자, 2026년 완공. 반도체/이차전지 핵심 소재 국산화로 소재 부문 가치 재평가 기대</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">3</td>
+                    <td class="text-bold">CU 해외 확장</td>
+                    <td>5개국 750점+, K-편의점 최초 미국 진출. 국내 포화 시장의 돌파구로 해외 성장이 핵심</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">4</td>
+                    <td class="text-bold">안정적 수익 + 배당</td>
+                    <td>영업이익 연 600억원대 안정, 배당수익률 2.95%. 방어적 투자 포트폴리오에 적합</td>
+                </tr>
+                <tr>
+                    <td class="text-bold">5</td>
+                    <td class="text-bold">주의 필요</td>
+                    <td>지주사 디스카운트 고착화, 소재사업 투자 회수 불확실성, 편의점 시장 포화에 유의</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 최종 판정 -->
+        <div class="verdict-box">
+            <div class="verdict-title">종합 투자 판단</div>
+            <div class="verdict-score">
+                <div class="score-circle">
+                    <div class="score-num">6.5</div>
+                    <div class="score-label">/ 10</div>
+                </div>
+                <div class="verdict-text">
+                    BGF는 <strong>극단적으로 저평가된 자산가치</strong>(PBR 0.24배)와 <strong>무수불산 국산화라는 성장 모멘텀</strong>을 동시에 보유한 종목입니다.
+                    안정적인 CU 편의점 사업이 하방을 지지하고, 2026년 소재 신사업 가시화가 상방 촉매 역할을 할 수 있습니다.
+                    <br><br>
+                    다만, 지주회사 디스카운트 해소에는 <strong>시간과 촉매</strong>가 필요하며, 소재 부문의 대규모 투자가 실제 수익으로 이어지는지 확인이 필요합니다.
+                    <strong>증권사 목표주가 6,000원</strong>(현재가 대비 +36%)이 중기적으로 달성 가능한 수준으로 판단됩니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 출처 -->
+    <div class="section" style="background:#f7fafc;">
+        <h2><span class="icon" style="background:#e2e8f0;">&#128218;</span> 참고 출처</h2>
+        <ol style="font-size:0.85rem; color:var(--text-light); padding-left:20px; line-height:2;">
+            <li>FnGuide Company Guide &mdash; BGF(A027410) Snapshot (재무, 주주, 밸류에이션)</li>
+            <li>딥서치 &mdash; BGF(KRX:027410) 기업분석 (기업 개요, 지분 구조)</li>
+            <li>CEOSCOREDAILY &mdash; 2026년 편의점 업계 전망 (시장 포화, 점포 수 감소)</li>
+            <li>딜사이트 &mdash; BGF그룹 유통/소재 2세 승계 구조 분석</li>
+            <li>탑데일리 &mdash; BGF네트웍스 매각 및 지배구조 개편</li>
+            <li>뉴스1 &mdash; BGF에코머티리얼즈, 대원케미칼 722억원 인수</li>
+            <li>한국경제 &mdash; BGF, 무수불산 제조시설 1,500억원 투자</li>
+            <li>이투데이 &mdash; BGF그룹 2026 조직개편 인사</li>
+            <li>디지털데일리 &mdash; CU 매출/글로벌 전략 분석</li>
+            <li>BGF 공식 홈페이지 &mdash; 계열사 및 그룹 현황</li>
+        </ol>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="disclaimer">
+            <strong>&#9888; 면책 고지 (Disclaimer)</strong><br>
+            본 보고서는 공개된 정보를 기반으로 작성된 참고 자료이며, 투자 권유 또는 투자 조언이 아닙니다.
+            투자 판단은 반드시 본인의 판단과 책임 하에 이루어져야 합니다.
+            재무 데이터의 정확성은 DART, 네이버금융, FnGuide 등 공식 출처에서 직접 확인하시기 바랍니다.
+        </div>
+        <p>Report Generated: 2026-03-27 | Powered by AI Research Agent</p>
+    </div>
+
+</div>
+
+</body>
+</html>
